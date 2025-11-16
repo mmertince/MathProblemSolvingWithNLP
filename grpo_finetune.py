@@ -26,7 +26,6 @@ def reward_function(prompts: list, completions: list, question : list, correct_a
         True (1.0) if option A, B, C, or D matches at the last 20 characters of the output, False (0.0) otherwise.
         List of the above 0s or 1s are returned. By default, there are 8 completions to reward per math question. 
     """
-
     def extract_chosen_option(text: str):
         # Look for the last occurrence of A, B, C, or D in the last 20 characters.
         match = re.search(r'(?<![a-zA-Z])([ABCD])(?![a-zA-Z])', text[-20:])
@@ -46,8 +45,10 @@ def reward_function(prompts: list, completions: list, question : list, correct_a
     for completion, correct_ans in zip(completions, correct_answer):
         chosen_option = extract_chosen_option(completion)
 
+        #if chosen option is equal to correct answer reward it with 1.0
         if chosen_option != None and chosen_option == correct_ans:
             rewards.append(1.0)
+        #else reward = 0.0    
         else:
             rewards.append(0.0)
     
@@ -108,12 +109,15 @@ def preprocess_function(examples):
 
         choices_list = eval(choices)
 
-        formatted_options = "\n".join([f"{opt}" for opt in choices_list])
+        #formatted options should be in A. some value, B. some value, C. some value, D. some value
+        formatted_options = "\n".join([f"{chr(65 + j)}. {opt}" for j, opt in enumerate(choices_list)])
          
+        #full prompt
         prompt = f"{INSTRUCTION}\n\n-----------\n\nQuestion: {question}\n\nOptions:\n{formatted_options}"
         
         prompts.append(prompt)
-        correct_answers.append(answer)
+        #correct answer should be in the letter form: 'A', 'B', 'C', 'D' 
+        correct_answers.append(chr(65 + answer))
     
     return {
         'prompt': prompts,
